@@ -120,7 +120,7 @@ all_metrics <- function(data){
     
     return(outTable)
 }
- 
+
 
 dexcom1 <- as.data.frame(split_data["dexcom"])
 org <- split(dexcom, dexcom$id=="70497")
@@ -317,8 +317,8 @@ corrplot(cor_abbott_reg, col = col2(20), method = "color",
          type = "lower",tl.srt = 40, title= "Abbott", 
          diag = F, tl.cex = 0.6, cl.cex = 0.6, mar=c(0,0,2,0))
 dev.off()
-
-#dexcom
+#################################################################################################
+#abbott
 mecs_mat = as.matrix(abbott_reg[ , -1])
 rownames(mecs_mat) = as.character(abbott_reg$id)
 
@@ -366,10 +366,27 @@ metric_names[metric_names == "Min."]="Min"
 metric_names[metric_names == "Max."]="Max"
 colnames(mecs_mat_scale) = metric_names
 
-p = pheatmap(t(mecs_mat_scale), cutree_rows = 6, clustering_distance_rows = "correlation", clustering_distance_cols = "correlation", 
-             clustering_method = "complete", angle_col = 0)
-p
+colors <- c(min(mecs_mat_scale),seq(-2,2,by=0.1),max(mecs_mat_scale))
+my_palette <- c("blue",colorRampPalette(colors = c("blue", "white", "red"))
+                (n = length(colors)-3), "red")
+abbott_hm = pheatmap(t(mecs_mat_scale), color = my_palette, breaks=colors, cutree_rows = 6, clustering_distance_rows = "correlation", clustering_distance_cols = "correlation",
+                     clustering_method = "complete", angle_col = 0)
+abbott_hm1 = pheatmap(t(mecs_mat_scale), color = my_palette, breaks=colors, cutree_rows = NA, cutree_cols = 3, clustering_distance_cols = "correlation",
+                      clustering_method = "complete", angle_col = 0)
 
+abbott.clust <- cbind(abbott_reg, 
+                      cluster = cutree(abbott_hm1$tree_col, 
+                                       k = 3))
+
+
+abbott_g1 = filter(abbott.clust, cluster == 1)
+boxplot(dexcom_g1$ea1c)
+abbott_g2 = filter(abbott.clust, cluster ==2)
+boxplot(dexcom_g2$ea1c)
+abbott_g3 = filter(abbott.clust, cluster == 3)
+boxplot(dexcom_g3$ea1c)
+
+###############################################################################################
 #dexcom
 mecs_mat = as.matrix(dexcom_reg[ , -1])
 rownames(mecs_mat) = as.character(dexcom_reg$id)
@@ -418,6 +435,26 @@ metric_names[metric_names == "Min."]="Min"
 metric_names[metric_names == "Max."]="Max"
 colnames(mecs_mat_scale) = metric_names
 
-p = pheatmap(t(mecs_mat_scale), cutree_rows = 6, clustering_distance_rows = "correlation", clustering_distance_cols = "correlation", 
+colors <- c(min(mecs_mat_scale),seq(-2,2,by=0.1),max(mecs_mat_scale))
+my_palette <- c("blue",colorRampPalette(colors = c("blue", "white", "red"))
+                (n = length(colors)-3), "red")
+
+p = pheatmap(t(mecs_mat_scale), color = my_palette, breaks=colors, cutree_rows = 6,
+             clustering_distance_rows = "correlation", cutree_cols = 3,
+             clustering_distance_cols = "correlation",
              clustering_method = "complete", angle_col = 0)
+p = pheatmap(t(mecs_mat_scale), color = my_palette, breaks=colors, cutree_rows = NA,
+             cutree_cols= 3, 
+             clustering_distance_cols = "correlation",
+             clustering_method = "complete", angle_col = 0)
+dexcom.clust <- cbind(dexcom_reg, 
+                      cluster = cutree(p$tree_col, 
+                                       k = 3))
 p
+
+dexcom_g1 = filter(dexcom.clust, cluster == 1)
+boxplot(dexcom_g1$ea1c)
+dexcom_g2 = filter(dexcom.clust, cluster ==2)
+boxplot(dexcom_g2$ea1c)
+dexcom_g3 = filter(dexcom.clust, cluster == 3)
+boxplot(dexcom_g3$ea1c)
